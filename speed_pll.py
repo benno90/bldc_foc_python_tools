@@ -1,7 +1,16 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
+from definitions import *
 
+"""
+
+    This script simulates the motor angle estimation with a phase locked loop (PLL).
+    It can be used to tune the proportional and integral constants in the PI - controller.
+
+
+
+"""
 
 
 # ---------------------------------- bike parameter
@@ -13,19 +22,12 @@ WHEEL_CIRCUMFERENCE = 2.2       # in meter
 
 # ---------------------------------- velocity profile
 
-# currently there is only one available
+# currently there is only one profile 
 VELOCITY_PROFILE = 1
 
 # ----------------------------------
 
-MIN_INT = np.int32(0x80000000)
-print('MIN_INT =', MIN_INT)
-MAX_INT = np.int32(0x7FFFFFFF)
-print('MAX_INT =', MAX_INT)
-
-Q31_DEGREE = int(2147483648 / 180)
-print('Q31_DEGREE =', Q31_DEGREE)
-
+EXTRAPOLATION_METHOD = 1  # 1 -> linear extrapolation,   2 -> quadratic extrapolation
 
 # ----------------------------------
 # 
@@ -44,7 +46,7 @@ def Q31DEGREE_TO_DEGREE(phi):
 
 def velocity_profile(time):
     # ret: velocity [km / h] (float)
-    # pram: time [s] (float)
+    # param: time [s] (float)
     if VELOCITY_PROFILE == 1:
         if time < 6.0:
             return 50 * (time / 6.0)
@@ -104,14 +106,14 @@ print(tim2_tics)
 
 
 
-pll_p_ = 0
-pll_i_ = 0
-P_FACTOR_PLL = 1000
-I_FACTOR_PLL = 1000
 def get_p_factor_pll(delta_tic):
-    return 1 << 11
-    f1 = int(500)   # large divisor at high speeds (few tics)
-    f2 = int(500)    # small divisor at low speeds (more tics)
+
+    # constant p factor -> comment in order to use variable factor
+    return 1 << 8
+
+    # variable p factor
+    f1 = int(250)   # large divisor at high speeds (few tics)
+    f2 = int(250)    # small divisor at low speeds (more tics)
     df = f2 - f1
     t1 = int(40)
     t2 = int(296)
@@ -125,7 +127,11 @@ def get_p_factor_pll(delta_tic):
         return f1 + (d * df) // dt
 
 def get_i_factor_pll(delta_tic):
-    return 1 << 10
+
+    # constant i factor -> comment in order to use variable factor
+    return 1 << 9
+
+    # variable i factor
     f1 = int(500)
     f2 = int(500)
     df = f2 - f1
@@ -141,6 +147,9 @@ def get_i_factor_pll(delta_tic):
         return f1 + (d * df) // dt
 
 
+
+pll_p_ = 0
+pll_i_ = 0
 
 def speed_pll(phi_ist, phi_soll, p_f_pll, i_f_pll):
     global pll_p_, pll_i_
@@ -212,7 +221,6 @@ DELTA_TIC = []
 
 first_hall_event_flag = 1
         
-EXTRAPOLATION_METHOD = 1  # 1 -> linear extrapolation,   2 -> quadratic extrapolation
 hall_count = 0
 
 for tic in range(0, N):
@@ -239,7 +247,7 @@ for tic in range(0, N):
             phi_per_tic = speed_pll(phi_pll, phi_q31degree, get_p_factor_pll(delta_tic), get_i_factor_pll(delta_tic))
 
         # extrapolation
-        if EXTRAPOLATION_METHOD == 2:
+        if EXTRAPOLATION_METHOD == 2:  # quadratic extrapolation
             phi_extrapolated_base = np.floor(phi_q31degree)
             if hall_count > 2:
                 t2 = np.int(prev_prev_tic - tic)
@@ -255,7 +263,7 @@ for tic in range(0, N):
                 C = 0
                 B = (60.0 * Q31_DEGREE) / float(delta_tic)
 
-        elif EXTRAPOLATION_METHOD == 1:
+        elif EXTRAPOLATION_METHOD == 1:  # linear extrapolation
             phi_extrapolated_base = np.floor(phi_degree)
             phi_per_tic_extra = (60.0) / float(delta_tic)
         else:

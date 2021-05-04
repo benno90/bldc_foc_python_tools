@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 
 """
 
-    SVPWM switch time computations from scratch with symbolic computations
+    symbolic SVPWM switch time computations with sympy
 
 """
 
@@ -249,8 +249,9 @@ def getSector(angle):
         return 6
 
 for i in range(0, 360):
-    alpha = np.cos(np.deg2rad(i))
-    beta = np.sin(np.deg2rad(i))
+    amplitude = 0.5
+    alpha = np.cos(np.deg2rad(i)) * amplitude
+    beta = np.sin(np.deg2rad(i)) * amplitude
 
     sector = getSector(i);
 
@@ -267,7 +268,6 @@ for i in range(0, 360):
         Tph1[i] = ts3_1.subs([(a,alpha), (b,beta)])
         Tph2[i] = ts3_2.subs([(a,alpha), (b,beta)])
         Tph3[i] = ts3_3.subs([(a,alpha), (b,beta)])
-
 
 
 plt.plot(Tph1, label='t1', color='blue')
