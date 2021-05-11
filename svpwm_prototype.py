@@ -20,9 +20,10 @@ from definitions import *
     9 -> overflow
     8 -> overflow
     7 -> works
+    6 -> using this in the working code
 
 """
-
+print('q31 degree: ', Q31_DEGREE)
 print('+60 ° ', Q31_DEGREE_PLUS60)
 print('+120 °', Q31_DEGREE_PLUS120)
 print('+180 °',Q31_DEGREE_PLUS180)
@@ -31,18 +32,18 @@ print('-120 °', Q31_DEGREE_MINUS120)
 
 
 #U = np.int32(1 << 11)
-U = 1000
+U = 200
 
 
-SQRT_SHIFT = 7
+SQRT_SHIFT = 6
 SHIFT = SQRT_SHIFT + 11
-TWO_SHIFT = 2 << SQRT_SHIFT
-ONE_SHIFT = 1 << SQRT_SHIFT
-SQRT3_SHIFT = np.int32(np.sqrt(3) * ONE_SHIFT)
+TWO_SHIFTED = 2 << (SQRT_SHIFT + 22)
+ONE_SHIFTED = 1 << (SQRT_SHIFT + 22)
+SQRT3_SHIFT = np.int32(np.sqrt(3) * (1 << SQRT_SHIFT))
 
 _T = np.int32(1 << 11)
 
-print(SQRT3_SHIFT, _T, ONE_SHIFT, TWO_SHIFT)
+print(SQRT3_SHIFT, _T, ONE_SHIFTED, TWO_SHIFTED)
 
 Tph1 = np.zeros(360)
 Tph2 = np.zeros(360)
@@ -53,29 +54,29 @@ ubeta = np.zeros(360)
 
 for angle in range(0, 360):
 
-    angle_q31 = np.int32(angle * Q31_DEGREE)
+    q31_angle = np.int32(angle * Q31_DEGREE)
 
     # scaling with _T -> mapping from unity amplitude to _T amplitude
     # U / _T -> amplitude adjustment according to U
     Ualpha = np.int32(np.cos(np.deg2rad(angle)) * U * _T) * SQRT3_SHIFT
     ualpha[angle] = Ualpha
-    Ubeta = np.int32(np.sin(np.deg2rad(angle)) * U * _T) * ONE_SHIFT
+    Ubeta = np.int32(np.sin(np.deg2rad(angle)) * U * _T) << SQRT_SHIFT
     ubeta[angle] = Ubeta
 
-    one = np.int32(ONE_SHIFT * _T * _T)
-    two = np.int32(TWO_SHIFT * _T * _T)
+    #one = np.int32(ONE_SHIFT * _T * _T)
+    #two = np.int32(TWO_SHIFT * _T * _T)
 
-    if angle_q31 > 0:
-        if angle_q31 < Q31_DEGREE_PLUS60:
+    if q31_angle > 0:
+        if q31_angle < Q31_DEGREE_PLUS60:
             sector = 1
-        elif angle_q31 < Q31_DEGREE_PLUS120:
+        elif q31_angle < Q31_DEGREE_PLUS120:
             sector = 2
         else:
             sector = 3
     else:
-        if angle_q31 < Q31_DEGREE_MINUS120:
+        if q31_angle < Q31_DEGREE_MINUS120:
             sector = 4
-        elif angle_q31 < Q31_DEGREE_MINUS60:
+        elif q31_angle < Q31_DEGREE_MINUS60:
             sector = 5
         else:
             sector = 6
@@ -83,17 +84,17 @@ for angle in range(0, 360):
     #print(sector, angle, angle_q31)
     
     if sector == 1 or sector == 4:
-        Tph1[angle] = (Ualpha + Ubeta + two)  >> (SHIFT + 2)
-        Tph2[angle] = (-Ualpha + 3 * Ubeta + two) >> (SHIFT + 2)
-        Tph3[angle] = (-Ualpha - Ubeta + two) >> (SHIFT + 2)
+        Tph1[angle] = (Ualpha + Ubeta + TWO_SHIFTED)  >> (SHIFT + 2)
+        Tph2[angle] = (-Ualpha + 3 * Ubeta + TWO_SHIFTED) >> (SHIFT + 2)
+        Tph3[angle] = (-Ualpha - Ubeta + TWO_SHIFTED) >> (SHIFT + 2)
     if sector == 2 or sector == 5:
-        Tph1[angle] = (Ualpha + one) >> (SHIFT + 1)
-        Tph2[angle] = (Ubeta + one) >> (SHIFT + 1)
-        Tph3[angle] = (one - Ubeta) >> (SHIFT + 1)
+        Tph1[angle] = (Ualpha + ONE_SHIFTED) >> (SHIFT + 1)
+        Tph2[angle] = (Ubeta + ONE_SHIFTED) >> (SHIFT + 1)
+        Tph3[angle] = (ONE_SHIFTED - Ubeta) >> (SHIFT + 1)
     if sector == 3 or sector == 6:
-        Tph1[angle] = (Ualpha - Ubeta + two) >> (SHIFT + 2)
-        Tph2[angle] = (-Ualpha + Ubeta + two) >> (SHIFT + 2)
-        Tph3[angle] = (-Ualpha - 3 * Ubeta + two) >> (SHIFT + 2)
+        Tph1[angle] = (Ualpha - Ubeta + TWO_SHIFTED) >> (SHIFT + 2)
+        Tph2[angle] = (-Ualpha + Ubeta + TWO_SHIFTED) >> (SHIFT + 2)
+        Tph3[angle] = (-Ualpha - 3 * Ubeta + TWO_SHIFTED) >> (SHIFT + 2)
 
 
 #plt.plot(ualpha, label='ualpha', color='blue')
@@ -101,7 +102,7 @@ for angle in range(0, 360):
 
 plt.plot(Tph1, label='t1', color='blue')
 plt.plot(Tph2, label='t2', color='red')
-plt.plot(Tph3, label='t3', color='black')
+#plt.plot(Tph3, label='t3', color='black')
 plt.xticks([0,60,120,180,240,300,360])
 #plt.title('l')
 plt.legend()
