@@ -62,7 +62,7 @@ for angle in range(0, 360):
 
 plt.plot(Tph1, label='t1', color='blue')
 plt.plot(Tph2, label='t2', color='red')
-#plt.plot(Tph3, label='t3', color='black')
+plt.plot(Tph3, label='t3', color='black')
 plt.xticks([0,60,120,180,240,300,360])
 #plt.title('l')
 plt.legend()
