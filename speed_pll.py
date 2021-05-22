@@ -109,7 +109,9 @@ print(tim2_tics)
 def get_p_factor_pll(delta_tic):
 
     # constant p factor -> comment in order to use variable factor
-    return 1 << 8
+    #return 1 << 8
+    #return 1 << 9
+    return 1 << 9
 
     # variable p factor
     f1 = int(250)   # large divisor at high speeds (few tics)
@@ -129,7 +131,8 @@ def get_p_factor_pll(delta_tic):
 def get_i_factor_pll(delta_tic):
 
     # constant i factor -> comment in order to use variable factor
-    return 1 << 9
+    #return 1 << 9
+    return 1 << 7
 
     # variable i factor
     f1 = int(500)
@@ -156,6 +159,7 @@ def speed_pll(phi_ist, phi_soll, p_f_pll, i_f_pll):
     delta = int(phi_soll - phi_ist)
     #pll_p_ = (delta >> p_f_pll)
     pll_p_ = (delta / p_f_pll)
+    #pll_p_ = 0
     #pll_i_ += (delta >> i_f_pll)
     pll_i_ += (delta / i_f_pll)
     return pll_p_ + pll_i_
@@ -174,7 +178,7 @@ prev_prev_tic = int(0)
 
 
 T_START = 0.0
-T_END = 40.0
+T_END = 40.0 #40.0
 DELTA_TIME = T_END - T_START
 DT = 1.0 / TIC_FREQ
 N = int(DELTA_TIME * TIC_FREQ) + 1
@@ -319,6 +323,7 @@ plt.plot(TIME, VELOCITY_KPH, label='velocity', color='green')
 plt.plot(TIME, ERROR_PLL, label='error pll', color='blue')
 #plt.plot(HALL_EVT, DELTA_TIC, label='delta_tic', color='black')
 plt.plot(TIME, ERROR_EXTRA, label='error extra', color='red')
+plt.ylim(-30, 60)
 #plt.plot(HALL_EVT, [0]*len(HALL_EVT), label='hall_evt', marker=2, color='black')
 plt.legend()
 plt.show()

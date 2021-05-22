@@ -1,15 +1,35 @@
 import numpy as np
 from definitions import *
 
+"""
+
+    Prototype of the SVPWM switch time computation in C.
 
 
-_T = np.int32(1 << 11)
+    SQRT shift should be as high as possible without causing an overflow.
+    
+    Using
+    _T_SHIFT = 11
+    max amplitude U = 2<<11
+
+    31 - 11 - 11 = 9
+
+    9 -> overflow
+    8 -> overflow
+    7 -> works
+    6 -> using this in the working code
+
+"""
+
+
+_T_SHIFT = 11
+_T = np.int32(1 << _T_SHIFT)
 
 SQRT_SHIFT = 6
-SHIFT = SQRT_SHIFT + 11
-TWO_SHIFTED = 2 << (SQRT_SHIFT + 22)
-ONE_SHIFTED = 1 << (SQRT_SHIFT + 22)
-SQRT3_SHIFTED = np.int32(np.sqrt(3) * (1 << SQRT_SHIFT))
+SHIFT = SQRT_SHIFT + _T_SHIFT
+TWO_SHIFTED = 2 << (SQRT_SHIFT + 2 * _T_SHIFT)
+ONE_SHIFTED = 1 << (SQRT_SHIFT + 2 * _T_SHIFT)
+SQRT3_SHIFTED = np.int32(np.round(np.sqrt(3) * (1 << SQRT_SHIFT)))
 
 
 def svpwm(q31_u_alpha, q31_u_beta, q31_angle):
@@ -42,11 +62,11 @@ def svpwm(q31_u_alpha, q31_u_beta, q31_angle):
         Tph1 = (Ualpha + Ubeta + TWO_SHIFTED)  >> (SHIFT + 2)
         Tph2 = (-Ualpha + 3 * Ubeta + TWO_SHIFTED) >> (SHIFT + 2)
         Tph3 = (-Ualpha - Ubeta + TWO_SHIFTED) >> (SHIFT + 2)
-    if sector == 2 or sector == 5:
+    elif sector == 2 or sector == 5:
         Tph1 = (Ualpha + ONE_SHIFTED) >> (SHIFT + 1)
         Tph2 = (Ubeta + ONE_SHIFTED) >> (SHIFT + 1)
         Tph3 = (ONE_SHIFTED - Ubeta) >> (SHIFT + 1)
-    if sector == 3 or sector == 6:
+    else: #if sector == 3 or sector == 6:
         Tph1 = (Ualpha - Ubeta + TWO_SHIFTED) >> (SHIFT + 2)
         Tph2 = (-Ualpha + Ubeta + TWO_SHIFTED) >> (SHIFT + 2)
         Tph3 = (-Ualpha - 3 * Ubeta + TWO_SHIFTED) >> (SHIFT + 2)

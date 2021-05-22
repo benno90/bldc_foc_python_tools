@@ -3,37 +3,31 @@ import matplotlib.pyplot as plt
 
 from definitions import *
 from svpwm_prototype import *
-
-"""
-
-
-    Prototype of the SVPWM switch time computation in C.
+from svpwm_prototype import _T, _T_SHIFT
 
 
-    Max SQRT shift
-    
-    max U -> 11
-    _T -> 11
-
-    31 - 11 - 11 = 9
-
-    9 -> overflow
-    8 -> overflow
-    7 -> works
-    6 -> using this in the working code
-
-"""
+print('min int32', MIN_INT)
+print('max int32', MAX_INT)
+print()
 print('q31 degree: ', Q31_DEGREE)
 print('+60 ° ', Q31_DEGREE_PLUS60)
 print('+120 °', Q31_DEGREE_PLUS120)
 print('+180 °',Q31_DEGREE_PLUS180)
 print('-60 °', Q31_DEGREE_MINUS60)
 print('-120 °', Q31_DEGREE_MINUS120)
+print()
+print('_T_SHIFT', _T_SHIFT)
+print('_T', _T)
+print('SQRT_SHIFT', SQRT_SHIFT)
+print('SHIFT', SHIFT)
+print('TWO_SHIFTED', TWO_SHIFTED)
+print('ONE_SHIFTED', ONE_SHIFTED)
+print('SQRT3_SHIFTED', SQRT3_SHIFTED)
 
-
+# AMPLITUDE
 #print(SQRT3_SHIFTED, _T, ONE_SHIFTED, TWO_SHIFTED)
 #U = np.int32(1 << 11)
-U = np.int(2048 * 0.76)
+U = np.int32(_T * 0.76)
 
 
 
@@ -49,10 +43,12 @@ for angle in range(0, 360):
 
 
     q31_angle = np.int32(angle * Q31_DEGREE)
+    #q31_angle = np.int32(-angle * Q31_DEGREE)
     q31_u_alpha = np.int32(np.cos(np.deg2rad(angle)) * U)
     q31_u_beta = np.int32(np.sin(np.deg2rad(angle)) * U) 
 
     Tph1[angle], Tph2[angle], Tph3[angle] = svpwm(q31_u_alpha, q31_u_beta, q31_angle)
+    #Tph1[angle], Tph2[angle], Tph3[angle] = svpwm(q31_u_alpha, -q31_u_beta, q31_angle)
     #print(q31_u_alpha, q31_u_beta, Tph2[angle])
 
 
